@@ -50,7 +50,7 @@
 
     (vector? v)
     (generate-arg-list v prefix)
-    
+
     (and (map? v) (= :enum (:value-type v)))
     (:value v)
 
@@ -69,11 +69,16 @@
       value
       (quote-arg value))))
 
+(defn list-argument-value [argument config]
+  (let [value-type (:value-type argument)]
+    (if (= :object value-type)
+      (generate-arg argument (:prefix config))
+      (get-enum-or-string-value argument))))
+
 (defn argument-value-value [argument config]
-  (let [value (:value argument)
-        value-type (:value-type argument)]
+  (let [value (:value argument)]
     (cond
-      (:values value) (str "[" (str/join ", " (map get-enum-or-string-value (:values value))) "]")
+      (:values value) (str "[" (str/join ", " (map (fn [value] (list-argument-value value config)) (:values value))) "]")
       (and (vector? value) (= :object-value (first value))) (object-default-value (last value) config)
       :else (get-enum-or-string-value argument))))
 
